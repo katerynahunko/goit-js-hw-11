@@ -79,6 +79,7 @@ async function createMarkup() {
       if (currentPage === 1) {
         Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
       }
+      
     } else {
       Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     }
@@ -100,7 +101,7 @@ window.addEventListener('scroll', async () => {
     const scrollHeight = document.documentElement.scrollHeight;
     const scrollTop = window.scrollY;
     const clientHeight = document.documentElement.clientHeight;
-  
+
     if (!isLoading && scrollTop + clientHeight >= scrollHeight - 100) {
       isLoading = true;
       currentPage += 1
