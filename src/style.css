@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+}
+
+.search-form {
+    background-color: rgb(94, 94, 255);
+    padding: 20px;
+    margin: 0;
+    border: none;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    height: 32px;
+    font-size: 24px;
+    outline: none;
+    }
+
+    input::before {
+        content: "";
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+    }
