@@ -9,12 +9,13 @@ const searchForm = document.querySelector('#search-form');
 const searchInput = searchForm.querySelector('input[name="searchQuery"]');
 const gallery = document.querySelector('.gallery');
 const lightbox = new SimpleLightbox('.photo-card a');
-let currentPage = 1;
 const perPage = 20;
+let currentPage = 1;
+let isLoading = false;
+let searchQuery = '';
+let allImageData = 0;
 
-async function createMarkup(searchQuery) {
-  gallery.innerHTML = '';
-
+async function createMarkup() {
   try {
     const response = await axios.get(URL, {
       params: {
@@ -24,13 +25,20 @@ async function createMarkup(searchQuery) {
         orientation: 'horizontal',
         safesearch: true,
         page: currentPage,
+        per_page: perPage,
       },
     });
 
     const data = response.data;
 
     if (data.hits && data.hits.length > 0) {
-      data.hits.forEach(item => {
+      allImageData = [...allImageData, ...data.hits];
+
+      if (currentPage === 1) {
+        gallery.innerHTML = '';
+      }
+
+      allImageData.forEach(item => {
         const photoCard = document.createElement('div');
         photoCard.classList.add('photo-card');
 
@@ -45,21 +53,21 @@ async function createMarkup(searchQuery) {
         const info = document.createElement('div');
         info.classList.add('info');
         info.innerHTML = `
-                <div class="item-card">
-                    <p class="info-item">
-                        <b>Likes: </b>${item.likes}
-                    </p>
-                    <p class="info-item">
-                        <b>Views: </b> ${item.views}
-                    </p>
-                    <p class="info-item">
-                        <b>Comments: </b> ${item.comments}
-                    </p>
-                    <p class="info-item">
-                        <b>Downloads: </b>${item.downloads}
-                    </p>
-                    <div>
-                `;
+          <div class="item-card">
+              <p class="info-item">
+                  <b>Likes: </b>${item.likes}
+              </p>
+              <p class="info-item">
+                  <b>Views: </b> ${item.views}
+              </p>
+              <p class="info-item">
+                  <b>Comments: </b> ${item.comments}
+              </p>
+              <p class="info-item">
+                  <b>Downloads: </b>${item.downloads}
+              </p>
+          </div>
+        `;
 
         photoCard.appendChild(link);
         photoCard.appendChild(info);
@@ -68,29 +76,36 @@ async function createMarkup(searchQuery) {
 
       lightbox.refresh();
 
-      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      if (currentPage === 1) {
+        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      }
     } else {
-      Notiflix.Notify.failure('No images found. Please try again.');
+      Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
     }
   } catch (error) {
     console.error('Error:', error);
-    Notiflix.Notify.failure('Something went wrong. Please try again later.');
+    Notiflix.Notify.failure('Something is wrong. Please try again later.');
   }
 }
 
 searchForm.addEventListener('submit', event => {
   event.preventDefault();
-  const searchQuery = searchInput.value.trim();
-  createMarkup(searchQuery);
+  searchQuery = searchInput.value.trim(); 
+  allImageData = [];
+  currentPage = 1;
+  createMarkup();
 });
 
-window.addEventListener('scroll', () => {
-  const scrollHeight = document.documentElement.scrollHeight;
-  const scrollTop = window.scrollY;
-  const clientHeight = document.documentElement.clientHeight;
-
-  if (scrollTop + clientHeight >= scrollHeight - 100) {
-    currentPage += 1;
-    createMarkup(searchQuery);
-  }
-});
+window.addEventListener('scroll', async () => {
+    const scrollHeight = document.documentElement.scrollHeight;
+    const scrollTop = window.scrollY;
+    const clientHeight = document.documentElement.clientHeight;
+  
+    if (!isLoading && scrollTop + clientHeight >= scrollHeight - 100) {
+      isLoading = true;
+      currentPage += 1
+      await createMarkup();
+      isLoading = false;
+    }
+  });
+  

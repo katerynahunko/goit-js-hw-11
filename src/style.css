@@ -3,7 +3,7 @@ body {
 }
 
 .search-form {
-  background-color: rgb(94, 94, 255);
+  background-color: rgba(94, 94, 255, 0.7);
   padding: 20px;
   margin: 0;
   border: none;
@@ -13,6 +13,7 @@ body {
   height: 32px;
   font-size: 24px;
   outline: none;
+  position: sticky;
 }
 
 input::before {
@@ -65,4 +66,6 @@ img {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  overflow: auto;
+  height: 100vh;
 }
