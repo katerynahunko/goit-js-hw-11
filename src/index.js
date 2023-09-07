@@ -9,13 +9,18 @@ const searchForm = document.querySelector('#search-form');
 const searchInput = searchForm.querySelector('input[name="searchQuery"]');
 const gallery = document.querySelector('.gallery');
 const lightbox = new SimpleLightbox('.photo-card a');
-const perPage = 20;
+const perPage = 40;
 let currentPage = 1;
-let isLoading = false;
+let isFetching = false;
 let searchQuery = '';
-let allImageData = 0;
+let allImageData = [];
+let endOfResultsNotified = false;
 
 async function createMarkup() {
+  if (endOfResultsNotified) {
+    return;
+  }
+
   try {
     const response = await axios.get(URL, {
       params: {
@@ -53,6 +58,7 @@ async function createMarkup() {
         const info = document.createElement('div');
         info.classList.add('info');
         info.innerHTML = `
+        <img src="" alt="" loading="lazy" />
           <div class="item-card">
               <p class="info-item">
                   <b>Likes: </b>${item.likes}
@@ -79,9 +85,19 @@ async function createMarkup() {
       if (currentPage === 1) {
         Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
       }
-      
+
+      if (data.hits.length < perPage) {
+        endOfResultsNotified = true;
+        Notiflix.Notify.warning(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
+
+      currentPage += 1;
     } else {
-      Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
     }
   } catch (error) {
     console.error('Error:', error);
@@ -91,22 +107,21 @@ async function createMarkup() {
 
 searchForm.addEventListener('submit', event => {
   event.preventDefault();
-  searchQuery = searchInput.value.trim(); 
+  searchQuery = searchInput.value.trim();
   allImageData = [];
   currentPage = 1;
+  endOfResultsNotified = false;
   createMarkup();
 });
 
 window.addEventListener('scroll', async () => {
-    const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = window.scrollY;
-    const clientHeight = document.documentElement.clientHeight;
+  const scrollHeight = document.documentElement.scrollHeight;
+  const scrollTop = window.scrollY;
+  const clientHeight = document.documentElement.clientHeight;
 
-    if (!isLoading && scrollTop + clientHeight >= scrollHeight - 100) {
-      isLoading = true;
-      currentPage += 1
-      await createMarkup();
-      isLoading = false;
-    }
-  });
-  
+  if (!isFetching && scrollTop + clientHeight >= scrollHeight - 100) {
+    isFetching = true;
+    createMarkup();
+    isFetching = false;
+  }
+});
