@@ -37,47 +37,46 @@ async function createMarkup() {
     const data = response.data;
 
     if (data.hits && data.hits.length > 0) {
-      allImageData = [...allImageData, ...data.hits];
-
       if (currentPage === 1) {
         gallery.innerHTML = '';
+        allImageData = [];
       }
 
-      allImageData.forEach(item => {
-        const photoCard = document.createElement('div');
-        photoCard.classList.add('photo-card');
+      data.hits.forEach(item => {
+        const imageExists = allImageData.some(img => img.id === item.id);
 
-        const image = document.createElement('img');
-        image.src = item.webformatURL;
-        image.alt = item.tags;
+        if (!imageExists) {
+          allImageData.push(item);
 
-        const link = document.createElement('a');
-        link.href = item.largeImageURL;
-        link.appendChild(image);
+          const photoCard = document.createElement('div');
+          photoCard.classList.add('photo-card');
 
-        const info = document.createElement('div');
-        info.classList.add('info');
-        info.innerHTML = `
-        <img src="" alt="" loading="lazy" />
-          <div class="item-card">
-              <p class="info-item">
-                  <b>Likes: </b>${item.likes}
-              </p>
-              <p class="info-item">
-                  <b>Views: </b> ${item.views}
-              </p>
-              <p class="info-item">
-                  <b>Comments: </b> ${item.comments}
-              </p>
-              <p class="info-item">
-                  <b>Downloads: </b>${item.downloads}
-              </p>
-          </div>
-        `;
+          const image = document.createElement('img');
+          image.src = item.webformatURL;
+          image.alt = item.tags;
+          image.loading = 'lazy';
 
-        photoCard.appendChild(link);
-        photoCard.appendChild(info);
-        gallery.appendChild(photoCard);
+          const info = document.createElement('div');
+          info.classList.add('info');
+          info.innerHTML = `
+            <p class="info-item">
+              <b>Likes:</b> ${item.likes}
+            </p>
+            <p class="info-item">
+              <b>Views:</b> ${item.views}
+            </p>
+            <p class="info-item">
+              <b>Comments:</b> ${item.comments}
+            </p>
+            <p class="info-item">
+              <b>Downloads:</b> ${item.downloads}
+            </p>
+          `;
+
+          photoCard.appendChild(image);
+          photoCard.appendChild(info);
+          gallery.appendChild(photoCard);
+        }
       });
 
       lightbox.refresh();
@@ -108,7 +107,6 @@ async function createMarkup() {
 searchForm.addEventListener('submit', event => {
   event.preventDefault();
   searchQuery = searchInput.value.trim();
-  allImageData = [];
   currentPage = 1;
   endOfResultsNotified = false;
   createMarkup();
