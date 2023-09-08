@@ -79,7 +79,7 @@ async function createMarkup() {
       if (data.hits.length < perPage) {
         endOfResultsNotified = true;
         Notiflix.Notify.warning(
-          "We're sorry, but you've reached the end of search results."
+          "Sorry, there are no images matching your search query. Please try again."
         );
       }
 
